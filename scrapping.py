@@ -19,7 +19,21 @@ for pagina in range(1, TOTAL_PAGINAS + 1):
 
     print(f"Coletando página {pagina}...")
 
-    resposta = requests.get(url, headers=headers)
+    for tentativa in range(1, 4):
+        try:
+            resposta = requests.get(url, headers=headers, timeout=15)
+            break
+        except requests.exceptions.RequestException as erro:
+            print(f"Falha na página {pagina} (tentativa {tentativa}/3): {erro}")
+            if tentativa == 3:
+                resposta = None
+            else:
+                time.sleep(2 * tentativa)
+
+    if resposta is None:
+        print(f"Pulando página {pagina} após falhas consecutivas.")
+        continue
+
     soup = BeautifulSoup(resposta.text, "html.parser")
 
     linhas = soup.find_all("tr")
